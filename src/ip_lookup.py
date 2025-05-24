@@ -33,10 +33,11 @@ def generate_kml(results, output_path):
 
 def get_ip_info(ip):
     try:
-        response = requests.get(API_URL.format(ip), timeout=5)
+        # Primero intentamos ip-api
+        response = requests.get(f"http://ip-api.com/json/{ip}", timeout=5)
         if response.status_code == 200:
             data = response.json()
-            if data["status"] == "success":
+            if data.get("status") == "success":
                 return {
                     "IP": ip,
                     "País": data.get("country"),
@@ -47,7 +48,24 @@ def get_ip_info(ip):
                     "Lat": data.get("lat"),
                     "Lon": data.get("lon"),
                 }
-        return {"IP": ip, "Error": data.get("message", "No se pudo obtener info")}
+
+        # Si ip-api falla o excede el límite, probamos con ipinfo
+        print(f"🔁 Fallo con ip-api para {ip}, probando con ipinfo...")
+        response = requests.get(f"https://ipinfo.io/{ip}/json", timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            loc = data.get("loc", "0,0").split(",")
+            return {
+                "IP": ip,
+                "País": data.get("country"),
+                "Región": data.get("region", ""),
+                "Ciudad": data.get("city", ""),
+                "ISP": data.get("org", ""),
+                "Org": data.get("org", ""),
+                "Lat": float(loc[0]),
+                "Lon": float(loc[1]),
+            }
+        return {"IP": ip, "Error": "No se pudo obtener información de ningún proveedor."}
     except Exception as e:
         return {"IP": ip, "Error": str(e)}
 
