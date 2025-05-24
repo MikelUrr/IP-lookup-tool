@@ -3,8 +3,27 @@ import requests
 import argparse
 import os
 from src.utils import clean_ip
+from xml.etree.ElementTree import Element, SubElement, ElementTree
 
 API_URL = "http://ip-api.com/json/{}"
+
+
+
+def generate_kml(results, output_path):
+    kml = Element("kml", xmlns="http://www.opengis.net/kml/2.2")
+    doc = SubElement(kml, "Document")
+
+    for entry in results:
+        if entry.get("Lat") is not None and entry.get("Lon") is not None:
+            placemark = SubElement(doc, "Placemark")
+            SubElement(placemark, "name").text = entry.get("IP")
+            SubElement(placemark, "description").text = f"{entry.get('Ciudad')}, {entry.get('País')} - {entry.get('ISP')}"
+            point = SubElement(placemark, "Point")
+            SubElement(point, "coordinates").text = f"{entry['Lon']},{entry['Lat']},0"
+
+    tree = ElementTree(kml)
+    tree.write(output_path, encoding="utf-8", xml_declaration=True)
+
 
 def get_ip_info(ip):
     try:
@@ -38,7 +57,7 @@ def read_ips(filepath):
         raise ValueError(f"Extensión de archivo no soportada: {ext}")
     return df[0].dropna().apply(clean_ip).tolist()
 
-def process_ips(input_file, output_file):
+def process_ips(input_file, output_file, kml_file=None):
     if not os.path.exists(input_file):
         print(f"❌ Archivo de entrada no encontrado: {input_file}")
         return
@@ -51,12 +70,16 @@ def process_ips(input_file, output_file):
     df_result = pd.DataFrame(results)
 
     df_result.to_excel(output_file, index=False)
+    if kml_file:
+        generate_kml(results, kml_file)
+        print(f"📍 Archivo KML generado: {kml_file}")
     print(f"✅ Archivo generado: {output_file}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Consulta información de direcciones IP desde un archivo.")
     parser.add_argument("input", help="Ruta al archivo de entrada (.csv, .txt, .xlsx)")
     parser.add_argument("output", help="Ruta al archivo de salida .xlsx")
+    parser.add_argument("--kml", help="Ruta opcional para generar archivo KML")
     args = parser.parse_args()
 
-    process_ips(args.input, args.output)
+    process_ips(args.input, args.output, args.kml)

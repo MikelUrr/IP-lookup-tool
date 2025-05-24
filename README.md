@@ -32,6 +32,7 @@ Herramienta en Python que permite obtener información geográfica y técnica so
 - Consulta gratuita a la API de [ip-api.com](http://ip-api.com).
 - Soporte para archivos de entrada `.csv`, `.txt`, `.xlsx`.
 - Exporta los resultados a un archivo Excel con múltiples columnas.
+- Opcionalmente genera un archivo KML para visualizar las IPs en un mapa.
 - Pensado para ser fácilmente extensible y mantenible.
 
 ---
@@ -93,6 +94,16 @@ python -m src.ip_lookup data/input.csv data/output.xlsx
 ---
 
 ## 📋 Ejemplos de uso
+
+### 🌍 0. Generar archivo KML (opcional)
+
+```bash
+python -m src.ip_lookup data/input.csv data/output.xlsx --kml data/output.kml
+```
+
+> El archivo `.kml` generado puede visualizarse en Google Earth o herramientas GIS.
+
+---
 
 ### 🧾 1. Leer archivo CSV
 
