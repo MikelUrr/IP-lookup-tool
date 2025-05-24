@@ -3,6 +3,8 @@ import requests
 import argparse
 import os
 import re
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from src.utils import clean_ip
 from xml.etree.ElementTree import Element, SubElement, ElementTree
 
@@ -72,6 +74,7 @@ def process_ips(input_file, output_file, kml_file=None):
 
     results = []
     seen_ips = set()
+    valid_ips = []
     for ip in ips:
         if not ip:
             continue
@@ -84,7 +87,19 @@ def process_ips(input_file, output_file, kml_file=None):
             results.append({"IP": ip, "Error": "Invalid IP format"})
             continue
         seen_ips.add(ip)
-        results.append(get_ip_info(ip))
+        valid_ips.append(ip)
+
+    BATCH_SIZE = 45
+    for i in range(0, len(valid_ips), BATCH_SIZE):
+        batch = valid_ips[i:i + BATCH_SIZE]
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            future_to_ip = {executor.submit(get_ip_info, ip): ip for ip in batch}
+            for future in as_completed(future_to_ip):
+                result = future.result()
+                results.append(result)
+        if i + BATCH_SIZE < len(valid_ips):
+            print("⏳ Esperando 60 segundos para cumplir el límite de la API...")
+            time.sleep(60)
 
     df_result = pd.DataFrame(results)
     df_result.to_excel(output_file, index=False)
