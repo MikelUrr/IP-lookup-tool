@@ -2,12 +2,17 @@ import pandas as pd
 import requests
 import argparse
 import os
+import re
 from src.utils import clean_ip
 from xml.etree.ElementTree import Element, SubElement, ElementTree
 
 API_URL = "http://ip-api.com/json/{}"
 
-
+def is_valid_ip(ip):
+    pattern = r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$"
+    if not re.match(pattern, ip):
+        return False
+    return all(0 <= int(part) <= 255 for part in ip.split('.'))
 
 def generate_kml(results, output_path):
     kml = Element("kml", xmlns="http://www.opengis.net/kml/2.2")
@@ -23,7 +28,6 @@ def generate_kml(results, output_path):
 
     tree = ElementTree(kml)
     tree.write(output_path, encoding="utf-8", xml_declaration=True)
-
 
 def get_ip_info(ip):
     try:
@@ -66,14 +70,29 @@ def process_ips(input_file, output_file, kml_file=None):
     ips = read_ips(input_file)
     print(f"📡 Consultando API para {len(ips)} IPs...")
 
-    results = [get_ip_info(ip) for ip in ips if ip]
-    df_result = pd.DataFrame(results)
+    results = []
+    seen_ips = set()
+    for ip in ips:
+        if not ip:
+            continue
+        if ip in seen_ips:
+            print(f"⚠️  IP duplicada ignorada: {ip}")
+            results.append({"IP": ip, "Error": "Duplicated IP"})
+            continue
+        if not is_valid_ip(ip):
+            print(f"❌ IP inválida: {ip}")
+            results.append({"IP": ip, "Error": "Invalid IP format"})
+            continue
+        seen_ips.add(ip)
+        results.append(get_ip_info(ip))
 
+    df_result = pd.DataFrame(results)
     df_result.to_excel(output_file, index=False)
+    print(f"✅ Archivo generado: {output_file}")
+
     if kml_file:
         generate_kml(results, kml_file)
         print(f"📍 Archivo KML generado: {kml_file}")
-    print(f"✅ Archivo generado: {output_file}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Consulta información de direcciones IP desde un archivo.")
