@@ -1,141 +1,129 @@
 # 🛰️ IP Lookup Tool
 
-Herramienta en Python que permite obtener información geográfica y técnica sobre direcciones IP, a partir de un archivo `.csv`, `.txt` o `.xlsx`.
+Herramienta en Python para consultar información geográfica y técnica de direcciones IP. Permite cargar listas de IP desde archivos `.csv`, `.txt` o `.xlsx` y exportar los resultados a Excel o KML para su visualización en mapas.
+
+---
 
 ## 🚀 Características
 
-- Consulta a IP-API (gratuito, sin clave API).
-- Soporte para archivos de entrada `.csv`, `.txt`, `.xlsx`.
-- Exporta resultados a Excel.
-- Pensado para ser fácilmente extensible.
+- CLI moderna basada en [`Typer`](https://typer.tiangolo.com/) con soporte para `--help`.
+- Consulta de IPs utilizando **ip-api.com** y **fallback automático a ipinfo.io** en caso de error o límite de uso.
+- Soporte para entrada desde `.csv`, `.txt` o `.xlsx`.
+- Exportación de resultados a `.xlsx`.
+- Generación opcional de archivo `.kml` para uso en Google Earth o herramientas GIS.
+- Validación de IPs duplicadas o mal formateadas.
+- Modo detallado (`--verbose`) para seguimiento por consola.
+- Testeado con `pytest`.
+
+---
 
 ## 🗂️ Estructura del Proyecto
 
-Ver estructura de carpetas en el código fuente.
-
-## 📦 Instalación
-
 ```bash
-git clone https://github.com/MikelUrr/IP-lookup-tool.git
-cd IP-lookup-tool
-python3 -m venv venv
-source venv/bin/activate  # En Windows: venv\Scripts\activate
-pip install -r requirements.txt
-# 🛰️ IP Lookup Tool
-
-Herramienta en Python que permite obtener información geográfica y técnica sobre direcciones IP, a partir de un archivo `.csv`, `.txt` o `.xlsx`.
-
----
-
-## 🚀 Características
-
-- Consulta gratuita a la API de [ip-api.com](http://ip-api.com).
-- Soporte para archivos de entrada `.csv`, `.txt`, `.xlsx`.
-- Exporta los resultados a un archivo Excel con múltiples columnas.
-- Opcionalmente genera un archivo KML para visualizar las IPs en un mapa.
-- Pensado para ser fácilmente extensible y mantenible.
-
----
-
-## 📂 Estructura del Proyecto
-
-```bash
-ip_lookup_tool/
-│
-├── data/
-│   ├── input.csv              # Archivo de entrada (IPs)
-│   └── output.xlsx            # Archivo de salida con los resultados
-│
+.
+├── data/                     # Archivos de entrada y salida
+│   ├── input.csv
+│   └── output.xlsx
 ├── src/
 │   ├── __init__.py
-│   ├── ip_lookup.py           # Lógica principal del script
-│   └── utils.py               # Funciones auxiliares
-│
+│   ├── ip_lookup.py          # Lógica principal del script
+│   └── utils.py              # Funciones auxiliares
 ├── tests/
-│   └── test_ip_lookup.py      # Pruebas automáticas
-│
-├── requirements.txt           # Dependencias
-├── README.md                  # Este archivo
-└── .gitignore
+│   └── test_ip_lookup.py     # Tests unitarios
+├── setup.py                  # Instalación como CLI global
+├── requirements.txt
+└── README.md
 ```
 
 ---
 
 ## 📦 Instalación
 
-1. Clona el repositorio:
+### 1. Clonar el repositorio
 
 ```bash
 git clone https://github.com/MikelUrr/IP-lookup-tool.git
 cd IP-lookup-tool
 ```
 
-2. Crea un entorno virtual:
+### 2. Crear entorno virtual
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate  # En Windows: venv\Scripts\activate
 ```
 
-3. Instala las dependencias:
+### 3. Instalar dependencias
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
+### 4. (Opcional) Instalar como comando global
 
-## 🛠️ Uso
+Ubicado en el directorio raíz se encuentra `setup.py`. Para instalar el CLI globalmente:
 
 ```bash
-python -m src.ip_lookup data/input.csv data/output.xlsx
+pip install .
+```
+
+Esto habilita el comando:
+
+```bash
+ip-lookup input.csv output.xlsx --kml output.kml --verbose
+```
+
+---
+
+## 🛠️ Uso desde CLI
+
+```bash
+python src/ip_lookup.py input.csv output.xlsx [--kml output.kml] [--verbose]
+```
+
+O si lo instalaste como paquete CLI:
+
+```bash
+ip-lookup input.csv output.xlsx --kml output.kml --verbose
 ```
 
 ---
 
 ## 📋 Ejemplos de uso
 
-### 🌍 0. Generar archivo KML (opcional)
+### ✅ Leer IPs desde CSV
 
 ```bash
-python -m src.ip_lookup data/input.csv data/output.xlsx --kml data/output.kml
+ip-lookup data/input.csv data/output.xlsx
 ```
 
-> El archivo `.kml` generado puede visualizarse en Google Earth o herramientas GIS.
-
----
-
-### 🧾 1. Leer archivo CSV
+### 📄 Leer IPs desde TXT
 
 ```bash
-python -m src.ip_lookup data/input.csv data/output.xlsx
+ip-lookup data/input.txt data/output.xlsx
 ```
 
-> El archivo `input.csv` debe contener una IP por línea o una columna con IPs.
-
----
-
-### 📄 2. Leer archivo TXT (una IP por línea)
-
-Puedes usar el mismo comando si el archivo `.txt` tiene el mismo formato que un `.csv` (una IP por línea).
+### 📊 Leer IPs desde Excel
 
 ```bash
-python -m src.ip_lookup data/ips.txt data/output.xlsx
+ip-lookup data/input.xlsx data/output.xlsx
 ```
 
----
-
-### 📊 3. Leer archivo Excel (`.xlsx`)
-
-Modifica la función de lectura para admitir Excel (ya soportado si adaptas `pandas.read_excel()`).
+### 🌍 Generar archivo KML para visualizar en mapas
 
 ```bash
-python -m src.ip_lookup data/input_ips.xlsx data/output.xlsx
+ip-lookup data/input.csv data/output.xlsx --kml data/output.kml
+```
+
+### 🔍 Activar modo detallado
+
+```bash
+ip-lookup data/input.csv data/output.xlsx --verbose
 ```
 
 ---
 
-### 🧪 4. Ejecutar pruebas
+## 🧪 Ejecutar pruebas
 
 ```bash
 pytest tests/
@@ -143,21 +131,36 @@ pytest tests/
 
 ---
 
-## 🧾 Formato del resultado
+## 📤 Formato de salida
 
-El archivo Excel generado tendrá columnas como:
+El archivo Excel incluirá las siguientes columnas:
 
-- IP
-- País
-- Región
-- Ciudad
-- ISP
-- Org
-- Lat
-- Lon
-- Error (si aplica)
+- `IP`
+- `País`
+- `Región`
+- `Ciudad`
+- `ISP`
+- `Org`
+- `Lat`
+- `Lon`
+- `Error` (si aplica)
 
 ---
+
+
+---
+
+## 🌐 APIs Utilizadas
+
+Este proyecto utiliza dos servicios web para obtener información sobre direcciones IP:
+
+- [ip-api.com](http://ip-api.com/docs)  
+  Servicio gratuito sin clave para consultar información de geolocalización y red.  
+  Límite: 45 peticiones por minuto desde la misma IP.
+
+- [ipinfo.io](https://ipinfo.io/developers)  
+  Utilizado como alternativa en caso de fallo o límite con ip-api.  
+  Proporciona ubicación, ISP y más datos sobre la IP consultada.
 
 ## 📝 Licencia
 
@@ -165,7 +168,7 @@ MIT License
 
 ---
 
-## 📬 Contacto
+## ✉️ Contacto
 
-Creado por **Mikel U.**  
-Proyecto educativo y funcional. Se aceptan mejoras vía PR.
+Desarrollado por **Mikel U.**  
+Este proyecto es funcional y educativo. Se aceptan contribuciones vía pull request.
